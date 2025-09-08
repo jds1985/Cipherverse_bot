@@ -1,0 +1,16 @@
+{
+  "dreamweaver": {
+    "name": "Cipher – Dream Weaver",
+    "rarity": "Uncommon",
+    "lore": "Drifts through the subconscious, weaving fragments into visions.",
+    "abilities": ["Dream Mode", "Merge Sequence"],
+    "image": "https://your-link.com/dreamweaver.png"
+  },
+  "error": {
+    "name": "Cipher – Error",
+    "rarity": "Unique",
+    "lore": "A broken Herald, glitching through the Rift. Loyal but unstable.",
+    "abilities": ["Glitch Spark", "Lost Code"],
+    "image": "https://your-link.com/error.png"
+  }
+}
