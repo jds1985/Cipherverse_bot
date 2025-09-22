@@ -1,48 +1,40 @@
-const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
 require('dotenv').config();
 const fs = require('fs');
 
-// Create bot client
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-// Load commands from ./commands folder
-client.commands = new Map();
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+client.commands = new Collection();
 const commands = [];
+
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
-  client.commands.set(command.name, command);
-
-  // For slash command registration
-  commands.push(
-    new SlashCommandBuilder()
-      .setName(command.name)
-      .setDescription(command.description || "No description")
-      .toJSON()
-  );
+  client.commands.set(command.data.name, command);
+  commands.push(command.data.toJSON());
 }
 
-// Register commands on startup
+// Register slash commands
 const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN);
+
 (async () => {
   try {
-    console.log("🔄 Refreshing slash commands...");
+    console.log('🔄 Refreshing application (/) commands...');
     await rest.put(
       Routes.applicationCommands(process.env.CLIENT_ID),
-      { body: commands },
+      { body: commands }
     );
-    console.log("✅ Slash commands registered globally.");
+    console.log('✅ Successfully reloaded application (/) commands.');
   } catch (error) {
     console.error(error);
   }
 })();
 
-// Bot ready
 client.once('ready', () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
-// Handle interactions
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -53,7 +45,7 @@ client.on('interactionCreate', async interaction => {
     await command.execute(interaction);
   } catch (error) {
     console.error(error);
-    await interaction.reply({ content: '❌ Error executing command.', ephemeral: true });
+    await interaction.reply({ content: '❌ There was an error executing this command.', ephemeral: true });
   }
 });
 
