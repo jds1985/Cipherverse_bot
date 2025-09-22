@@ -1,23 +1,32 @@
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, REST, Routes } = require('discord.js');
 require('dotenv').config();
-const fs = require('fs');
 
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ]
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
 });
 
-client.commands = new Collection();
+// Slash command setup
+const commands = [
+  {
+    name: 'ping',
+    description: 'Replies with Pong!',
+  },
+];
 
-// Load commands from ./commands
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
-  client.commands.set(command.data.name, command);
-}
+const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN);
+
+(async () => {
+  try {
+    console.log('Refreshing application (/) commands...');
+    await rest.put(
+      Routes.applicationCommands(process.env.CLIENT_ID),
+      { body: commands }
+    );
+    console.log('Slash commands registered!');
+  } catch (error) {
+    console.error('Error registering slash commands:', error);
+  }
+})();
 
 client.once('ready', () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
@@ -27,24 +36,17 @@ client.once('ready', () => {
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
-  const command = client.commands.get(interaction.commandName);
-  if (!command) return;
-
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
-    await interaction.reply({
-      content: '❌ There was an error executing this command.',
-      ephemeral: true
-    });
+  if (interaction.commandName === 'ping') {
+    await interaction.reply('🏓 Pong! (via Slash Command)');
   }
 });
 
-// Handle simple message-based commands (like !ping)
-client.on('messageCreate', message => {
+// Handle prefix commands
+client.on('messageCreate', async message => {
+  if (message.author.bot) return;
+
   if (message.content === '!ping') {
-    message.reply('🏓 Pong!');
+    await message.reply('🏓 Pong! (via Prefix Command)');
   }
 });
 
