@@ -1,11 +1,10 @@
 {
   "name": "cipherverse-bot",
   "version": "1.0.0",
-  "description": "A Discord bot for the Cipherverse trading card game.",
+  "description": "A Discord bot for the Cipherverse",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "deploy": "node deploy-commands.js"
+    "start": "node index.js"
   },
   "dependencies": {
     "discord.js": "^14.15.2",
