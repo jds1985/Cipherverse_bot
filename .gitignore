@@ -1,5 +1,11 @@
-# Node modules
+# Node dependencies
 node_modules/
+npm-debug.log
+yarn-error.log
 
-# Env secrets
+# Environment variables
 .env
+
+# Logs
+logs
+*.log
