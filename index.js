@@ -7,6 +7,7 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
 const commands = [];
 
+// Load all command files
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
@@ -15,17 +16,17 @@ for (const file of commandFiles) {
   commands.push(command.data.toJSON());
 }
 
-// Register slash commands
+// Register guild slash commands (instant update)
 const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN);
 
 (async () => {
   try {
-    console.log('🔄 Refreshing application (/) commands...');
+    console.log('🔄 Refreshing guild (/) commands...');
     await rest.put(
-      Routes.applicationCommands(process.env.CLIENT_ID),
+      Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
       { body: commands }
     );
-    console.log('✅ Successfully reloaded application (/) commands.');
+    console.log('✅ Successfully reloaded guild (/) commands.');
   } catch (error) {
     console.error(error);
   }
@@ -45,7 +46,10 @@ client.on('interactionCreate', async interaction => {
     await command.execute(interaction);
   } catch (error) {
     console.error(error);
-    await interaction.reply({ content: '❌ There was an error executing this command.', ephemeral: true });
+    await interaction.reply({
+      content: '❌ There was an error executing this command.',
+      ephemeral: true
+    });
   }
 });
 
