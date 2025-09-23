@@ -5,7 +5,7 @@ const fs = require('fs');
 // Create bot client
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-// Command collection
+// Store commands
 client.commands = new Collection();
 const commands = [];
 
@@ -13,12 +13,24 @@ const commands = [];
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
-  client.commands.set(command.data.name, command);
-  commands.push(command.data.toJSON());
+  try {
+    const command = require(`./commands/${file}`);
+
+    // ✅ Check if command has proper data
+    if (!command.data || !command.data.name) {
+      console.warn(`⚠️ Skipping invalid command file: ${file}`);
+      continue;
+    }
+
+    client.commands.set(command.data.name, command);
+    commands.push(command.data.toJSON());
+    console.log(`✅ Loaded command: ${command.data.name}`);
+  } catch (error) {
+    console.error(`❌ Error loading command file ${file}:`, error);
+  }
 }
 
-// Register guild slash commands
+// Register guild commands
 const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN);
 
 (async () => {
@@ -30,16 +42,16 @@ const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN);
     );
     console.log('✅ Successfully reloaded guild (/) commands.');
   } catch (error) {
-    console.error('❌ Error reloading guild (/) commands:', error);
+    console.error('❌ Error reloading commands:', error);
   }
 })();
 
 // Bot ready
 client.once('ready', () => {
-  console.log(`✅ Logged in as ${client.user.tag}`);
+  console.log(`🤖 Logged in as ${client.user.tag}`);
 });
 
-// Interaction handler
+// Handle interactions
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -49,12 +61,8 @@ client.on('interactionCreate', async interaction => {
   try {
     await command.execute(interaction);
   } catch (error) {
-    console.error(error);
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({ content: '❌ Error executing command.', ephemeral: true });
-    } else {
-      await interaction.reply({ content: '❌ Error executing command.', ephemeral: true });
-    }
+    console.error(`❌ Error executing command ${interaction.commandName}:`, error);
+    await interaction.reply({ content: '❌ There was an error executing this command.', ephemeral: true });
   }
 });
 
