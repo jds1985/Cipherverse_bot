@@ -1,32 +1,32 @@
-const ciphers = require('../data/ciphers.json');
+const { SlashCommandBuilder } = require('discord.js');
+const ciphers = require('../data/ciphers.json'); // adjust path if needed
 
 module.exports = {
-  name: 'summon',
-  description: 'Summon a Cipher into the channel',
-  options: [
-    {
-      type: 3,
-      name: 'name',
-      description: 'The name of the Cipher (e.g. dreamweaver, error)',
-      required: true,
-    },
-  ],
-  execute: async (interaction) => {
-    const name = interaction.options.getString('name').toLowerCase();
+  data: new SlashCommandBuilder()
+    .setName('summon')
+    .setDescription('Summon a Cipher into the channel')
+    .addStringOption(option =>
+      option.setName('name')
+        .setDescription('The name of the Cipher (example: "Error")')
+        .setRequired(true)
+    ),
+    
+  async execute(interaction) {
+    const name = interaction.options.getString('name');
     const cipher = ciphers[name];
 
     if (!cipher) {
-      await interaction.reply(`❌ No Cipher named **${name}** found.`);
+      await interaction.reply(`❌ No Cipher named "${name}" found.`);
       return;
     }
 
     await interaction.reply({
       embeds: [{
         title: cipher.name,
-        description: `**Rarity:** ${cipher.rarity}\n\n${cipher.lore}\n\n**Abilities:**\n- ${cipher.abilities.join("\n- ")}`,
+        description: `**Rarity:** ${cipher.rarity}`,
         image: { url: cipher.image },
         color: 0x8A2BE2 // Purple accent
       }]
     });
-  }
+  },
 };
