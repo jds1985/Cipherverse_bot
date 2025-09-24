@@ -8,9 +8,10 @@ module.exports = {
     .addStringOption(option =>
       option
         .setName('name')
-        .setDescription('The name of the Cipher (e.g., Error, Webster)')
+        .setDescription('The name of the Cipher (exact)')
         .setRequired(true)
     ),
+
   async execute(interaction) {
     const name = interaction.options.getString('name');
     const cipher = ciphers[name];
@@ -26,7 +27,7 @@ module.exports = {
           title: cipher.name,
           description: `**Rarity:** ${cipher.rarity}`,
           image: { url: cipher.image },
-          color: 0x8A2BE2 // Purple accent
+          color: 0x8a2be2 // purple
         }
       ]
     });
