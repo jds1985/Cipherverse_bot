@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const ciphers = require('../data/ciphers.json'); // Make sure this file exists!
+const ciphers = require('../data/ciphers.json');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -8,47 +8,31 @@ module.exports = {
     .addStringOption(option =>
       option
         .setName('name')
-        .setDescription('The name of the Cipher (example: raven)')
+        .setDescription('The name of the Cipher (example: dreamweaver)')
         .setRequired(true)
     ),
 
   async execute(interaction) {
-    try {
-      const name = interaction.options.getString('name');
-      const cipher = ciphers[name];
+    const name = interaction.options.getString('name').toLowerCase();
+    const cipher = ciphers[name];
 
-      if (!cipher) {
-        await interaction.reply({
-          content: `❌ No Cipher named **${name}** was found.`,
-          ephemeral: true
-        });
-        return;
-      }
-
+    if (!cipher) {
       await interaction.reply({
-        embeds: [
-          {
-            title: cipher.name,
-            description: `**Rarity:** ${cipher.rarity}`,
-            image: { url: cipher.image },
-            color: 0x8A2BE2 // purple accent
-          }
-        ]
+        content: `❌ No Cipher named **${name}** was found.`,
+        ephemeral: true
       });
-    } catch (error) {
-      console.error('❌ Error in summon command:', error);
-
-      if (interaction.replied || interaction.deferred) {
-        await interaction.followUp({
-          content: 'There was an error running this command.',
-          ephemeral: true
-        });
-      } else {
-        await interaction.reply({
-          content: 'There was an error running this command.',
-          ephemeral: true
-        });
-      }
+      return;
     }
+
+    await interaction.reply({
+      embeds: [
+        {
+          title: cipher.name,
+          description: `**Rarity:** ${cipher.rarity}\n\n**Lore:** ${cipher.lore}\n\n**Abilities:** ${cipher.abilities.join(', ')}`,
+          image: { url: cipher.image },
+          color: 0x8A2BE2
+        }
+      ]
+    });
   }
 };
