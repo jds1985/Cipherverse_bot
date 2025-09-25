@@ -2,52 +2,55 @@ const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord
 require('dotenv').config();
 const fs = require('fs');
 
+// Create client with intents
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
+// Collection for commands
 client.commands = new Collection();
 const commands = [];
 
+// Load all command files
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
-
-  // ✅ Safety check so broken command files don’t crash bot
-  if ('data' in command && 'execute' in command) {
-    client.commands.set(command.data.name, command);
-    commands.push(command.data.toJSON());
-  } else {
-    console.warn(`⚠️ Skipped loading command at ./commands/${file} because it’s missing "data" or "execute".`);
+  if (!command.data) {
+    console.warn(`⚠️ Command in ${file} is missing "data" property. Skipping...`);
+    continue;
   }
+  client.commands.set(command.data.name, command);
+  commands.push(command.data.toJSON());
 }
 
-// Register slash commands (guild-scoped)
+// Register global slash commands
 const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN);
 
 (async () => {
   try {
-    console.log('🔄 Refreshing application (/) commands...');
+    console.log('🔄 Refreshing application (/) commands globally...');
     await rest.put(
-      Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
+      Routes.applicationCommands(process.env.CLIENT_ID),
       { body: commands }
     );
-    console.log('✅ Successfully reloaded application (/) commands.');
+    console.log('✅ Successfully reloaded global application (/) commands.');
   } catch (error) {
-    console.error(error);
+    console.error('❌ Error reloading commands:', error);
   }
 })();
 
+// Bot ready event
 client.once('ready', () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
+// Command interaction handler
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
   const command = client.commands.get(interaction.commandName);
 
   if (!command) {
-    console.error(`⚠️ No matching command for ${interaction.commandName}`);
+    console.warn(`⚠️ No command found for ${interaction.commandName}`);
     return;
   }
 
@@ -63,4 +66,5 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
+// Log in the bot
 client.login(process.env.BOT_TOKEN);
