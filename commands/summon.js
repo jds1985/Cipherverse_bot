@@ -8,7 +8,7 @@ module.exports = {
     .addStringOption(option =>
       option
         .setName('name')
-        .setDescription('The name of the Cipher (example: dreamweaver)')
+        .setDescription('The name of the Cipher (e.g. dreamweaver, error)')
         .setRequired(true)
     ),
 
@@ -17,10 +17,7 @@ module.exports = {
     const cipher = ciphers[name];
 
     if (!cipher) {
-      await interaction.reply({
-        content: `❌ No Cipher named **${name}** was found.`,
-        ephemeral: true
-      });
+      await interaction.reply(`❌ No Cipher named **${name}** was found.`);
       return;
     }
 
@@ -30,9 +27,9 @@ module.exports = {
           title: cipher.name,
           description: `**Rarity:** ${cipher.rarity}\n\n**Lore:** ${cipher.lore}\n\n**Abilities:** ${cipher.abilities.join(', ')}`,
           image: { url: cipher.image },
-          color: 0x8A2BE2
-        }
-      ]
+          color: 0x8A2BE2, // Purple accent
+        },
+      ],
     });
-  }
+  },
 };
